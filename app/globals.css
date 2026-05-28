@@ -3,147 +3,116 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
   :root {
-    --navy:    #0D0F1A;
-    --cyan:    #00E5FF;
-    --charcoal:#1A1D2E;
-    --white:   #F0F0F0;
-    --amber:   #FFB300;
-    --surface: #12141F;
-    --border:  #2A2D3E;
-    --muted:   #4A4D5E;
+    --bg:        #ffffff;
+    --surface:   #f9fafb;
+    --surface2:  #f3f4f6;
+    --border:    #e5e7eb;
+    --border2:   #d1d5db;
+    --text:      #111827;
+    --text2:     #374151;
+    --muted:     #9ca3af;
+    --cyan:      #06b6d4;
+    --cyan-light:#ecfeff;
+    --cyan-mid:  #cffafe;
+    --amber:     #f59e0b;
+    --amber-light:#fffbeb;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
 
   body {
-    background-color: var(--navy);
-    color: var(--white);
-    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--navy); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-  /* Selection */
-  ::selection { background: #00E5FF30; color: var(--cyan); }
+  ::selection { background: #cffafe; color: #0891b2; }
 }
 
 @layer components {
-  .mikkal-card {
-    @apply bg-brand-charcoal border border-brand-border rounded-2xl;
+  .mk-card {
+    @apply bg-white border border-gray-200 rounded-2xl shadow-sm;
   }
 
-  .mikkal-input {
-    @apply bg-brand-surface border border-brand-border rounded-xl px-4 py-3
-           text-brand-white placeholder-brand-muted
-           focus:outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan
+  .mk-input {
+    @apply bg-white border border-gray-200 rounded-xl px-4 py-3
+           text-gray-900 placeholder-gray-400
+           focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100
            transition-all duration-200;
   }
 
-  .mikkal-btn-primary {
-    @apply bg-brand-cyan text-brand-navy font-display font-bold rounded-xl px-6 py-3
-           hover:bg-cyan-300 active:scale-95 transition-all duration-150;
+  .mk-btn {
+    @apply bg-cyan-500 text-white font-display font-semibold rounded-xl px-6 py-3
+           hover:bg-cyan-600 active:scale-95 transition-all duration-150
+           shadow-sm hover:shadow-md;
   }
 
-  .mikkal-btn-ghost {
-    @apply border border-brand-border text-brand-white rounded-xl px-6 py-3
-           hover:border-brand-cyan hover:text-brand-cyan transition-all duration-150;
+  .mk-btn-ghost {
+    @apply border border-gray-200 text-gray-700 bg-white rounded-xl px-6 py-3
+           hover:border-cyan-400 hover:text-cyan-600 hover:bg-cyan-50
+           transition-all duration-150;
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 30px #00E5FF25;
-  }
-
-  .glow-amber {
-    box-shadow: 0 0 30px #FFB30025;
-  }
-
-  /* Noise texture overlay */
-  .noise::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
+  .mk-btn-soft {
+    @apply bg-gray-100 text-gray-700 rounded-xl px-4 py-2
+           hover:bg-gray-200 transition-all duration-150 text-sm font-medium;
   }
 }
 
 /* Prose styles for AI responses */
-.mikkal-prose {
-  line-height: 1.7;
-}
-.mikkal-prose h1, .mikkal-prose h2, .mikkal-prose h3 {
+.mk-prose { line-height: 1.75; color: #374151; }
+.mk-prose h1, .mk-prose h2, .mk-prose h3 {
   font-family: 'Syne', sans-serif;
-  color: #F0F0F0;
+  color: #111827;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
+  font-weight: 700;
 }
-.mikkal-prose p { margin-bottom: 1em; }
-.mikkal-prose ul, .mikkal-prose ol {
-  padding-left: 1.5em;
-  margin-bottom: 1em;
-}
-.mikkal-prose li { margin-bottom: 0.25em; }
-.mikkal-prose code {
-  background: #1A1D2E;
-  color: #00E5FF;
+.mk-prose p { margin-bottom: 1em; }
+.mk-prose ul, .mk-prose ol { padding-left: 1.5em; margin-bottom: 1em; }
+.mk-prose li { margin-bottom: 0.25em; }
+.mk-prose code {
+  background: #f0f9ff;
+  color: #0891b2;
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.875em;
+  border: 1px solid #e0f2fe;
 }
-.mikkal-prose pre {
-  background: #12141F;
-  border: 1px solid #2A2D3E;
+.mk-prose pre {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1em;
   overflow-x: auto;
   margin-bottom: 1em;
 }
-.mikkal-prose pre code {
-  background: transparent;
-  padding: 0;
-  color: #F0F0F0;
-}
-.mikkal-prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1em;
-}
-.mikkal-prose th {
-  background: #1A1D2E;
-  color: #00E5FF;
+.mk-prose pre code { background: transparent; padding: 0; color: #334155; border: none; }
+.mk-prose table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+.mk-prose th {
+  background: #f0f9ff;
+  color: #0891b2;
   padding: 0.75em 1em;
   text-align: left;
   font-family: 'Syne', sans-serif;
-  border-bottom: 1px solid #2A2D3E;
+  border-bottom: 2px solid #e0f2fe;
+  font-size: 0.875em;
 }
-.mikkal-prose td {
-  padding: 0.75em 1em;
-  border-bottom: 1px solid #1A1D2E;
-}
-.mikkal-prose a {
-  color: #00E5FF;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.mikkal-prose blockquote {
-  border-left: 3px solid #00E5FF;
+.mk-prose td { padding: 0.75em 1em; border-bottom: 1px solid #f1f5f9; }
+.mk-prose a { color: #0891b2; text-decoration: underline; text-underline-offset: 3px; }
+.mk-prose blockquote {
+  border-left: 3px solid #06b6d4;
   padding-left: 1em;
-  color: #A0A3B0;
+  color: #6b7280;
   font-style: italic;
   margin-bottom: 1em;
 }
+.mk-prose strong { color: #111827; font-weight: 600; }

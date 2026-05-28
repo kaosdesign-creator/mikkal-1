@@ -1,119 +1,111 @@
-# Mikkal — Setup Guide
-## Your Personal AI Platform
+# Mikkal v2 — Setup Guide
+
+## What Changed From v1
+- Removed Clerk — replaced with NextAuth (works on any domain, free)
+- New modern light theme
+- Simpler user management — you control users directly in the code
 
 ---
 
-## Step 1 — Download Your Code
+## Step 1 — Replace Your Files
 
-Save all the files Claude gave you into a folder on your computer called `mikkal`.
-
----
-
-## Step 2 — Install Node.js
-
-Go to https://nodejs.org and download the **LTS** version. Install it. Restart VS Code after.
+Copy all these new files into your existing mikkal folder, replacing the old ones.
 
 ---
 
-## Step 3 — Open in VS Code
+## Step 2 — Generate Your NEXTAUTH_SECRET
 
-1. Open VS Code
-2. File → Open Folder → select your `mikkal` folder
-3. Open the Terminal: View → Terminal
-
----
-
-## Step 4 — Install Dependencies
-
-In the VS Code terminal, type:
+In VS Code terminal type:
 ```
-npm install
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
-Wait for it to finish (about 1-2 minutes).
+Copy the output and paste it as your NEXTAUTH_SECRET in .env.local
 
 ---
 
-## Step 5 — Set Up Your Environment Variables
+## Step 3 — Set Your Password
 
-1. Copy `.env.example` and rename the copy to `.env.local`
-2. Open `.env.local` and fill in each key:
+Visit this URL on your LOCAL server (after npm run dev):
+```
+http://localhost:3000/api/hash?password=YourChosenPassword
+```
+Copy the hash value from the response.
 
-| Variable | Where to get it |
-|---|---|
-| ANTHROPIC_API_KEY | console.anthropic.com → API Keys |
-| NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY | clerk.com → Your App → API Keys |
-| CLERK_SECRET_KEY | clerk.com → Your App → API Keys |
-| NEXT_PUBLIC_SUPABASE_URL | supabase.com → Your Project → Settings → API |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | supabase.com → Your Project → Settings → API |
-| SUPABASE_SERVICE_ROLE_KEY | supabase.com → Your Project → Settings → API |
-| TAVILY_API_KEY | tavily.com → Dashboard |
-| OPENAI_API_KEY | platform.openai.com → API Keys |
-| STABILITY_API_KEY | platform.stability.ai → API Keys |
+Open `app/api/auth/[...nextauth]/route.ts`
+Find the APPROVED_USERS section and paste your hash as the password value.
 
 ---
 
-## Step 6 — Set Up Supabase Database
+## Step 4 — Update .env.local
 
-1. Go to supabase.com → your project
-2. Click **SQL Editor** in the left sidebar
-3. Open the file `supabase-schema.sql` from your mikkal folder
-4. Copy everything in it
-5. Paste into the Supabase SQL Editor
-6. Click **Run**
+Add these new variables:
+```
+NEXTAUTH_SECRET=your_generated_secret
+NEXTAUTH_URL=https://mikkal.vercel.app
+```
 
----
-
-## Step 7 — Set Up Clerk
-
-1. Go to clerk.com → your app
-2. Under **User & Authentication** → set Sign-in to Email + Password
-3. Under **Restrictions** → turn ON "Restricted sign-ups" (invite only)
-4. Copy your API keys into `.env.local`
+Remove these old variables (no longer needed):
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+```
 
 ---
 
-## Step 8 — Test Locally
+## Step 5 — Install New Dependencies
 
 In VS Code terminal:
 ```
+npm install
+```
+
+---
+
+## Step 6 — Test Locally
+
+```
 npm run dev
 ```
-Open your browser to: http://localhost:3000
+Go to http://localhost:3000 and sign in with your email and chosen password.
 
 ---
 
-## Step 9 — Deploy to Vercel
+## Step 7 — Deploy to Vercel
 
-1. Push your code to GitHub (ask Claude to walk through this step)
-2. Go to vercel.com → New Project → Import from GitHub
-3. Add all your `.env.local` variables in Vercel's Environment Variables section
-4. Click Deploy
-5. Add your custom domain: mikkal.ai
+In Vercel Environment Variables, add:
+- NEXTAUTH_SECRET = your generated secret
+- NEXTAUTH_URL = https://mikkal.vercel.app
 
----
+Remove the old Clerk variables.
 
-## Step 10 — Invite Your Family
-
-1. Go to clerk.com → your app → Users
-2. Click **Invite** → type their email → send
-3. They get an email, click the link, set a password, and they're in Mikkal
-
----
-
-## Adding Personal Welcome Notes
-
-Open the file: `app/welcome/page.tsx`
-Find the `PERSONAL_NOTES` section near the top.
-Add each person's Clerk User ID and their personal note:
-
+Then push to GitHub:
 ```
-'user_abc123': "You're one of my favorite people. Welcome to something special.",
+git add .
+git commit -m "v2 light theme nextauth"
+git push
 ```
 
-You can find each person's User ID in your Clerk dashboard under Users.
+Vercel auto-deploys. Done.
 
 ---
 
-## Need Help?
+## Adding Family Members
 
-Just open a new conversation with Claude in the Mikkal project and describe what's happening. Every problem has a fix.
+Open `app/api/auth/[...nextauth]/route.ts`
+
+1. Generate their password hash: visit `/api/hash?password=TheirPassword`
+2. Add them to APPROVED_USERS like this:
+
+```
+{
+  id: '2',
+  name: 'Sandra Smith',
+  email: 'sandra@email.com',
+  password: 'paste_their_hash_here',
+  role: 'lifetime',
+  note: 'Your personal message to Sandra here.',
+},
+```
+
+3. Save → git push → auto-deploys
+4. Tell them their email and password

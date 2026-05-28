@@ -1,170 +1,133 @@
 'use client'
-import { useUser } from '@clerk/nextjs'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
-// Custom notes Brent has written for each family member
-// Key = Clerk user ID or email, value = personal note
-const PERSONAL_NOTES: Record<string, string> = {
-  // Add your family members here like:
-  // 'user_abc123': "You're one of the first people I trusted with this. Enjoy every bit of it.",
-  // 'brent@example.com': "Welcome home.",
-  'default': "You're here because you matter. Make yourself at home."
-}
-
-function getTimeOfDay(): { greeting: string; sub: string } {
+function getGreeting() {
   const h = new Date().getHours()
-  if (h >= 5 && h < 12)  return { greeting: 'Good morning',   sub: "Let's start something great today." }
-  if (h >= 12 && h < 17) return { greeting: 'Good afternoon', sub: "What can we build together?" }
-  if (h >= 17 && h < 21) return { greeting: 'Good evening',   sub: "Mikkal's ready when you are." }
-  return { greeting: 'Hey, night owl',  sub: "Mikkal never sleeps either." }
+  if (h >= 5  && h < 12) return 'Good morning'
+  if (h >= 12 && h < 17) return 'Good afternoon'
+  if (h >= 17 && h < 21) return 'Good evening'
+  return 'Hey, night owl'
 }
 
-function getDayGreeting(): string {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const day = days[new Date().getDay()]
-  if (day === 'Friday')   return "Happy Friday — the weekend's almost here."
+function getDaySub() {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const day  = days[new Date().getDay()]
+  if (day === 'Friday')                      return "Happy Friday — the weekend's almost here."
   if (day === 'Saturday' || day === 'Sunday') return `Enjoy your ${day}.`
-  return ''
+  return "Let's see what we can build today."
 }
 
 export default function WelcomePage() {
-  const { user, isLoaded } = useUser()
-  const router = useRouter()
-  const [show, setShow] = useState(false)
-  const [entering, setEntering] = useState(false)
+  const { data: session, status } = useSession()
+  const router  = useRouter()
+  const [show, setShow]       = useState(false)
+  const [leaving, setLeaving] = useState(false)
 
   useEffect(() => {
-    if (isLoaded) setTimeout(() => setShow(true), 100)
-  }, [isLoaded])
-
-  const { greeting, sub } = getTimeOfDay()
-  const dayNote = getDayGreeting()
-  const firstName = user?.firstName || user?.username || 'Friend'
-
-  const personalNote =
-    PERSONAL_NOTES[user?.id || ''] ||
-    PERSONAL_NOTES[user?.primaryEmailAddress?.emailAddress || ''] ||
-    PERSONAL_NOTES['default']
+    if (status === 'unauthenticated') router.push('/login')
+    if (status === 'authenticated')  setTimeout(() => setShow(true), 100)
+  }, [status, router])
 
   const handleEnter = () => {
-    setEntering(true)
-    setTimeout(() => router.push('/dashboard'), 800)
+    setLeaving(true)
+    setTimeout(() => router.push('/dashboard'), 600)
   }
 
-  if (!isLoaded) return null
+  if (!show) return null
+
+  const firstName = session?.user?.name?.split(' ')[0] || 'Friend'
+  const note      = (session?.user as any)?.note || "You're here because you matter. Make yourself at home."
+  const greeting  = getGreeting()
+  const daySub    = getDaySub()
 
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.main
-          initial={{ opacity: 0 }}
-          animate={{ opacity: entering ? 0 : 1 }}
-          transition={{ duration: 0.8 }}
-          className="min-h-screen bg-brand-navy flex flex-col items-center justify-center relative overflow-hidden px-6"
+    <motion.main
+      initial={{ opacity: 0 }}
+      animate={{ opacity: leaving ? 0 : 1 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-amber-50 flex flex-col items-center justify-center px-6"
+    >
+      <div className="max-w-md w-full flex flex-col items-center text-center gap-5">
+
+        {/* Avatar */}
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', duration: 0.6 }}
+          className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-200 border-4 border-white"
         >
-          {/* Warm glow for welcome */}
-          <div className="absolute inset-0 bg-mikkal-warm pointer-events-none" />
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-brand-amber opacity-[0.04] blur-3xl pointer-events-none" />
+          <span className="font-display font-extrabold text-3xl text-white">
+            {firstName[0]?.toUpperCase()}
+          </span>
+        </motion.div>
 
-          <div className="relative z-10 max-w-xl w-full flex flex-col items-center text-center gap-6">
+        {/* Greeting */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <p className="text-gray-500 text-lg font-body">{greeting},</p>
+          <h1 className="font-display font-extrabold text-6xl text-gray-900 leading-tight">
+            {firstName}.
+          </h1>
+        </motion.div>
 
-            {/* User avatar */}
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, duration: 0.6, type: 'spring' }}
-              className="w-20 h-20 rounded-full border-2 border-brand-amber overflow-hidden bg-brand-charcoal flex items-center justify-center glow-amber"
-            >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt={firstName} className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-display font-800 text-3xl text-brand-amber">
-                  {firstName[0]?.toUpperCase()}
-                </span>
-              )}
-            </motion.div>
+        {/* Day note */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-amber-600 text-sm font-medium font-body"
+        >
+          {daySub}
+        </motion.p>
 
-            {/* Time greeting */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.7 }}
-              className="flex flex-col gap-1"
-            >
-              <p className="text-brand-muted text-lg font-body">{greeting},</p>
-              <h1 className="font-display font-800 text-6xl text-brand-white leading-none">
-                {firstName}.
-              </h1>
-            </motion.div>
+        {/* Divider */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.5 }}
+          className="w-16 h-px bg-gray-200"
+        />
 
-            {/* Day note */}
-            {dayNote && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="text-brand-amber text-sm font-body"
-              >
-                {dayNote}
-              </motion.p>
-            )}
+        {/* Personal note */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="text-gray-600 text-lg font-body leading-relaxed italic"
+        >
+          "{note}"
+        </motion.p>
 
-            {/* Divider */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="w-24 h-px bg-brand-border"
-            />
+        {/* Enter button */}
+        <motion.button
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          onClick={handleEnter}
+          className="mk-btn text-lg px-12 py-4 mt-2"
+        >
+          Enter Mikkal
+        </motion.button>
 
-            {/* Personal note from Brent */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.7 }}
-              className="text-brand-white text-lg font-body leading-relaxed italic"
-            >
-              "{personalNote}"
-            </motion.p>
-
-            {/* Sub greeting */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="text-brand-muted text-sm"
-            >
-              {sub}
-            </motion.p>
-
-            {/* Enter button */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1, duration: 0.6 }}
-              onClick={handleEnter}
-              className="mt-4 mikkal-btn-primary text-lg px-12 py-4 glow-cyan"
-            >
-              Enter Mikkal
-            </motion.button>
-
-            {/* Mikkal brand */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.3 }}
-              className="flex items-center gap-2 mt-4"
-            >
-              <div className="w-6 h-6 rounded-md bg-brand-charcoal border border-brand-border flex items-center justify-center">
-                <span className="font-display font-800 text-xs text-brand-cyan">M</span>
-              </div>
-              <span className="text-brand-muted text-xs font-body">Mikkal — Private Access</span>
-            </motion.div>
+        {/* Brand */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="flex items-center gap-2 text-gray-400 text-xs font-body"
+        >
+          <div className="w-5 h-5 rounded bg-cyan-500 flex items-center justify-center">
+            <span className="text-white font-bold text-xs">M</span>
           </div>
-        </motion.main>
-      )}
-    </AnimatePresence>
+          Mikkal — Private Access
+        </motion.div>
+      </div>
+    </motion.main>
   )
 }

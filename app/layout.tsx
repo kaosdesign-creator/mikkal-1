@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
-import { Syne, Inter } from 'next/font/google'
+import { Syne, DM_Sans } from 'next/font/google'
+import Providers from './providers'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
@@ -10,36 +10,37 @@ const syne = Syne({
   weight: ['400', '500', '600', '700', '800'],
 })
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-dm',
 })
 
 export const metadata: Metadata = {
   title: 'Mikkal — Your Personal AI',
-  description: 'Everything you need. One place. Mikkal.',
+  description: 'Wisdom. Insight. Intelligence.',
   icons: { icon: '/favicon.ico' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={`${syne.variable} ${inter.variable}`}>
-        <body className="bg-brand-navy text-brand-white font-body antialiased">
+    <html lang="en" className={`${syne.variable} ${dmSans.variable}`}>
+      <body className="bg-white text-gray-900 font-body antialiased">
+        <Providers>
           {children}
           <Toaster
             position="bottom-right"
             toastOptions={{
               style: {
-                background: '#1A1D2E',
-                color: '#F0F0F0',
-                border: '1px solid #2A2D3E',
-                fontFamily: 'Inter, sans-serif',
+                background: '#ffffff',
+                color: '#111827',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                fontFamily: 'var(--font-dm)',
               },
             }}
           />
-        </body>
-      </html>
-    </ClerkProvider>
+        </Providers>
+      </body>
+    </html>
   )
 }
