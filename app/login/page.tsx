@@ -11,7 +11,11 @@ export default function LoginPage() {
           </div>
           <span className="font-display font-bold text-3xl text-brand-white">Mikkal</span>
         </div>
-        <SignIn routing="hash" />
+        <SignIn 
+          routing="hash"
+          forceRedirectUrl="/dashboard"
+          signUpUrl="/login"
+        />
       </div>
     </main>
   )
