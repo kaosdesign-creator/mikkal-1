@@ -53,26 +53,9 @@ export default function ChatInterface() {
 
       if (!res.ok) throw new Error('Failed')
 
-      const reader  = res.body!.getReader()
-      const decoder = new TextDecoder()
-      let full = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const lines = decoder.decode(value).split('\n')
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const d = line.slice(6)
-            if (d === '[DONE]') {
-              setMessages(prev => [...prev, { id: uuidv4(), role: 'assistant', content: full }])
-              setStreaming('')
-            } else {
-              try { full += JSON.parse(d).text; setStreaming(full) } catch {}
-            }
-          }
-        }
-      }
+      const data = await res.json()
+setMessages(prev => [...prev, { id: uuidv4(), role: 'assistant', content: data.text }])
+setStreaming('')
     } catch {
       toast.error('Something went wrong. Try again.')
     } finally {
