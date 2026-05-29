@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
     })
   } catch (error) {
-    console.error(error)
+    console.error('CHAT ERROR:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
