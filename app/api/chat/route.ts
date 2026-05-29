@@ -1,3 +1,4 @@
+process.env.NODE_OPTIONS = '--no-deprecation'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
