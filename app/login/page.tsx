@@ -25,7 +25,7 @@ export default function LoginPage() {
     })
 
     if (res?.ok) {
-      router.push('/welcome')
+      router.push('/dashboard')
     } else {
       setError('Invalid email or password. Contact Brent for access.')
       setLoading(false)
