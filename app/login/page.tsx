@@ -1,126 +1,64 @@
 'use client'
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
-export default function LoginPage() {
-  const router   = useRouter()
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [showPw, setShowPw]     = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    const res = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
-
-    if (res?.ok) {
-      router.push('/dashboard')
-    } else {
-      setError('Invalid email or password. Contact Brent for access.')
-      setLoading(false)
-    }
-  }
+export default function LandingPage() {
+  const router = useRouter()
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-white flex flex-col">
 
-      {/* Subtle background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-white pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-sm"
-      >
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500 flex items-center justify-center mb-4 shadow-lg shadow-cyan-200">
-            <span className="font-display font-extrabold text-2xl text-white">M</span>
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-8 py-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center">
+            <span className="font-bold text-white text-sm">M</span>
           </div>
-          <h1 className="font-display font-bold text-2xl text-gray-900">Welcome to Mikkal</h1>
-          <p className="text-gray-500 text-sm mt-1">Sign in to your private AI</p>
+          <span className="font-bold text-xl text-gray-900">Mikkal</span>
         </div>
+        <button
+          onClick={() => router.push('/login')}
+          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          Sign In →
+        </button>
+      </nav>
 
-        {/* Form */}
-        <div className="mk-card p-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Hero */}
+      <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="inline-flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-full px-4 py-1.5 mb-8">
+            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+            <span className="text-cyan-700 text-sm font-medium">Private Access — Invite Only</span>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className="mk-input w-full"
-              />
-            </div>
+          <h1 className="text-6xl font-bold text-gray-900 leading-tight mb-6 max-w-2xl mx-auto">
+            Everything you need.<br />
+            <span className="text-cyan-500">One place.</span>
+          </h1>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="mk-input w-full pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+          <p className="text-gray-400 text-lg mb-12 max-w-md mx-auto">
+            Your personal AI. Research, write, build, create — all in one beautifully simple interface.
+          </p>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm">
-                {error}
-              </div>
-            )}
+          <button
+            onClick={() => router.push('/login')}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold px-10 py-4 rounded-2xl text-lg transition-all duration-200 shadow-lg shadow-cyan-200"
+          >
+            Enter Mikkal
+          </button>
+        </motion.div>
+      </section>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mk-btn w-full flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-        </div>
+      {/* Footer */}
+      <footer className="py-6 text-center text-gray-300 text-sm">
+        © {new Date().getFullYear()} Mikkal — Private Access
+      </footer>
 
-        <p className="text-center text-gray-400 text-xs mt-6">
-          Mikkal is invite-only. Contact Brent for access.
-        </p>
-      </motion.div>
     </main>
   )
 }
