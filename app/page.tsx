@@ -1,101 +1,97 @@
-'use client'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Zap, Search, FileText, Image, Code, Share2 } from 'lucide-react'
-
-const FEATURES = [
-  { icon: Zap,      label: 'AI Chat',      desc: 'Ask anything, get real answers' },
-  { icon: Search,   label: 'Research',     desc: 'Live web search and analysis' },
-  { icon: FileText, label: 'Documents',    desc: 'Word, Excel, PDF — all formats' },
-  { icon: Image,    label: 'Images',       desc: 'Generate and edit visuals' },
-  { icon: Code,     label: 'Code',         desc: 'Write and run any language' },
-  { icon: Share2,   label: 'Social',       desc: 'Create and schedule posts' },
-]
+import Link from 'next/link'
 
 export default function LandingPage() {
-  const router = useRouter()
-
   return (
-    <main className="min-h-screen bg-white">
+    <div style={{
+      minHeight: '100vh',
+      background: '#eeedea',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: 'Orbitron, sans-serif',
+    }}>
+      {/* Compass watermark */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 680, height: 680, opacity: 0.08, pointerEvents: 'none' }}>
+        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+          <circle cx="100" cy="100" r="90" stroke="#1a1a1a" strokeWidth="0.5"/>
+          <circle cx="100" cy="100" r="70" stroke="#1a1a1a" strokeWidth="0.3"/>
+          <circle cx="100" cy="100" r="50" stroke="#1a1a1a" strokeWidth="0.2"/>
+          <circle cx="100" cy="100" r="4" fill="#1a1a1a"/>
+          <polygon points="100,10 106,90 100,80 94,90" fill="#1a1a1a"/>
+          <polygon points="100,190 106,110 100,120 94,110" fill="#1a1a1a" opacity="0.5"/>
+          <polygon points="190,100 110,106 120,100 110,94" fill="#1a1a1a" opacity="0.5"/>
+          <polygon points="10,100 90,106 80,100 90,94" fill="#1a1a1a" opacity="0.5"/>
+          <line x1="127" y1="27" x2="109" y2="91" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="173" y1="73" x2="109" y2="91" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="173" y1="127" x2="109" y2="109" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="127" y1="173" x2="109" y2="109" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="73" y1="173" x2="91" y2="109" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="27" y1="127" x2="91" y2="109" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="27" y1="73" x2="91" y2="91" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="73" y1="27" x2="91" y2="91" stroke="#1a1a1a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="100" y1="20" x2="100" y2="30" stroke="#1a1a1a" strokeWidth="1"/>
+          <line x1="100" y1="170" x2="100" y2="180" stroke="#1a1a1a" strokeWidth="0.5"/>
+          <line x1="20" y1="100" x2="30" y2="100" stroke="#1a1a1a" strokeWidth="0.5"/>
+          <line x1="170" y1="100" x2="180" y2="100" stroke="#1a1a1a" strokeWidth="0.5"/>
+          <g transform="translate(100,100)" opacity="0.7">
+            <ellipse cx="0" cy="-8" rx="12" ry="7" fill="#1a1a1a"/>
+            <polygon points="-22,-2 0,-10 22,-2 0,4" fill="#1a1a1a"/>
+            <polygon points="0,4 -6,16 0,12 6,16" fill="#1a1a1a"/>
+            <circle cx="4" cy="-10" r="1.5" fill="#eeedea"/>
+            <polygon points="6,-8 12,-7 7,-5" fill="#1a1a1a"/>
+          </g>
+        </svg>
+      </div>
 
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center">
-            <span className="font-display font-bold text-white text-sm">M</span>
-          </div>
-          <span className="font-display font-bold text-xl text-gray-900">Mikkal</span>
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Wordmark */}
+        <div style={{ fontSize: 72, letterSpacing: '7.2px', color: '#1a1a1a', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+          <span style={{ fontWeight: 400 }}>M</span>
+          <span style={{ fontWeight: 400 }}>I</span>
+          <span style={{ fontWeight: 900, display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>
+          <span style={{ fontWeight: 900 }}>K</span>
+          <span style={{ fontWeight: 400 }}>A</span>
+          <span style={{ fontWeight: 400 }}>L</span>
         </div>
-        <button
-          onClick={() => router.push('/login')}
-          className="mk-btn text-sm px-5 py-2.5"
+
+        {/* Tagline */}
+        <p style={{ fontFamily: "'Bungee Hairline', sans-serif", fontSize: 11, letterSpacing: 4, color: '#999', marginTop: 18, textAlign: 'center' }}>
+          WISDOM &nbsp;·&nbsp; INSIGHT &nbsp;·&nbsp; INTELLIGENCE
+        </p>
+
+        {/* Button */}
+        <Link
+          href="/login"
+          style={{
+            marginTop: 52,
+            display: 'inline-block',
+            padding: '14px 40px',
+            border: '1.5px solid #1a1a1a',
+            borderRadius: 999,
+            color: '#1a1a1a',
+            fontFamily: "'Bungee Hairline', sans-serif",
+            fontSize: 12,
+            letterSpacing: 3,
+            textDecoration: 'none',
+          }}
         >
-          Sign In
-        </button>
-      </nav>
+          SIGN IN TO MIKKAL
+        </Link>
 
-      {/* Hero */}
-      <section className="max-w-4xl mx-auto px-8 pt-24 pb-16 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-full px-4 py-1.5 mb-8">
-            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-            <span className="text-cyan-700 text-sm font-medium">Private Access — Invite Only</span>
-          </div>
-
-          <h1 className="font-display font-extrabold text-6xl text-gray-900 leading-tight mb-6">
-            Everything you need.<br />
-            <span className="text-cyan-500">One place.</span>
-          </h1>
-
-          <p className="text-gray-500 text-xl mb-4 font-body">
-            Wisdom. Insight. Intelligence.
-          </p>
-
-          <p className="text-gray-400 text-base mb-12 font-body max-w-lg mx-auto">
-            Your personal AI that can research, write, build, create images, manage documents, and post to social — all in one beautifully simple interface.
-          </p>
-
-          <button
-            onClick={() => router.push('/login')}
-            className="mk-btn text-lg px-12 py-4"
-          >
-            Enter Mikkal
-          </button>
-        </motion.div>
-      </section>
-
-      {/* Features grid */}
-      <section className="max-w-4xl mx-auto px-8 pb-24">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {FEATURES.map((f, i) => {
-            const Icon = f.icon
-            return (
-              <motion.div
-                key={f.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * i, duration: 0.5 }}
-                className="mk-card p-5 hover:border-cyan-200 hover:shadow-md transition-all duration-200"
-              >
-                <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center mb-3">
-                  <Icon size={18} className="text-cyan-600" />
-                </div>
-                <p className="font-display font-semibold text-gray-900 mb-1">{f.label}</p>
-                <p className="text-gray-500 text-sm font-body">{f.desc}</p>
-              </motion.div>
-            )
-          })}
-        </div>
-      </section>
+        {/* Invite only */}
+        <p style={{ fontFamily: "'Bungee Hairline', sans-serif", fontSize: 10, letterSpacing: 3, color: '#bbb', marginTop: 16 }}>
+          INVITE ONLY
+        </p>
+      </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-6 text-center text-gray-400 text-sm font-body">
-        © {new Date().getFullYear()} Mikkal — Private Access
-      </footer>
-    </main>
+      <div style={{ position: 'fixed', bottom: 28, left: 0, right: 0, textAlign: 'center', fontFamily: "'Bungee Hairline', sans-serif", fontSize: 10, letterSpacing: 3, color: '#bbb' }}>
+        © MIKKAL &nbsp;·&nbsp; PRIVATE ACCESS
+      </div>
+    </div>
   )
 }
