@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Send, Plus, Paperclip, X, Mic, MicOff, Type } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -24,7 +24,7 @@ const QUICK_PROMPTS = [
   'Draft a social post',
 ]
 
-export default function ChatInterface({ conversationId, onConversationUpdate }: Props) {
+export default function ChatInterface({ conversationId = null, onConversationUpdate }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState('')
@@ -37,15 +37,16 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
   const fileRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
-  const activeConvoId = useRef<string | null>(conversationId || null)
+  const activeConvoId = useRef<string | null>(null)
 
-  useEffect(() => { activeConvoId.current = conversationId || null }, [conversationId])
+  useEffect(() => {
+    activeConvoId.current = conversationId || null
+  }, [conversationId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streaming, displayed])
 
-  // Load messages when conversation changes
   useEffect(() => {
     if (!conversationId) { setMessages([]); return }
     fetch(`/api/messages?conversationId=${conversationId}`)
@@ -56,7 +57,6 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
       })
   }, [conversationId])
 
-  // Typewriter effect
   useEffect(() => {
     if (!typewriter || !streaming) { setDisplayed(streaming); return }
     if (streaming.length <= displayed.length) return
@@ -78,7 +78,7 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
 
   const startVoice = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognition) return alert('Voice not supported in this browser')
+    if (!SpeechRecognition) { alert('Voice not supported in this browser'); return }
     const recognition = new SpeechRecognition()
     recognition.continuous = false
     recognition.interimResults = true
@@ -113,7 +113,10 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
       imagePreview: attachment?.preview,
     }
 
-    const apiMessages = [...messages.map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userMsg.content }]
+    const apiMessages = [
+      ...messages.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userMsg.content },
+    ]
 
     setMessages(prev => [...prev, userMsg])
     setInput('')
@@ -142,7 +145,7 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
           if (line.startsWith('data: ')) {
             const data = line.slice(6)
             if (data === '[DONE]') break
-            try { full += JSON.parse(data).text; setStreaming(full) } catch {}
+            try { full += JSON.parse(data).text; setStreaming(full) } catch { /* ignore */ }
           }
         }
       }
