@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Paperclip, X, Mic, MicOff, Type } from 'lucide-react'
+import { Send, Paperclip, X, Mic, MicOff, Copy, Edit3, Check, FileText, Camera, Search, Image as ImageIcon } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -8,66 +8,73 @@ interface Message {
   role: 'user' | 'assistant'
   content: any
   imagePreview?: string
+  id: string
 }
 
 interface Props {
   conversationId?: string | null
   onConversationUpdate?: () => void
+  userName?: string
 }
 
 const QUICK_PROMPTS = [
-  'Summarize something for me',
-  'Help me write an email',
-  'Explain a concept simply',
+  'Help me write something',
+  'Research a topic',
   'Review my code',
+  'Analyze a document',
+  'Create social content',
   'Brainstorm ideas',
-  'Draft a social post',
 ]
 
-export default function ChatInterface({ conversationId = null, onConversationUpdate }: Props) {
+export default function ChatInterface({ conversationId = null, onConversationUpdate, userName = 'there' }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState('')
   const [loading, setLoading] = useState(false)
   const [attachment, setAttachment] = useState<{ base64: string; mediaType: string; preview: string } | null>(null)
   const [listening, setListening] = useState(false)
-  const [typewriter, setTypewriter] = useState(true)
-  const [displayed, setDisplayed] = useState('')
+  const [copiedId, setCopiedId] = useState('')
+  const [editingId, setEditingId] = useState('')
+  const [editText, setEditText] = useState('')
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
+  const [activeConvoId, setActiveConvoId] = useState<string | null>(null)
+  const [chatStarted, setChatStarted] = useState(false)
+
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
-  const activeConvoId = useRef<string | null>(null)
+  const attachMenuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    activeConvoId.current = conversationId || null
-  }, [conversationId])
+  useEffect(() => { setActiveConvoId(conversationId || null) }, [conversationId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, streaming, displayed])
+  }, [messages, streaming])
 
   useEffect(() => {
-    if (!conversationId) { setMessages([]); return }
+    if (!conversationId) { setMessages([]); setChatStarted(false); return }
     fetch(`/api/messages?conversationId=${conversationId}`)
       .then(r => r.json())
       .then(d => {
-        const msgs = (d.messages || []).map((m: any) => ({ role: m.role, content: m.content }))
+        const msgs = (d.messages || []).map((m: any) => ({ role: m.role, content: m.content, id: m.id }))
         setMessages(msgs)
+        if (msgs.length > 0) setChatStarted(true)
       })
   }, [conversationId])
 
   useEffect(() => {
-    if (!typewriter || !streaming) { setDisplayed(streaming); return }
-    if (streaming.length <= displayed.length) return
-    const timeout = setTimeout(() => {
-      setDisplayed(streaming.slice(0, displayed.length + 3))
-    }, 8)
-    return () => clearTimeout(timeout)
-  }, [streaming, displayed, typewriter])
+    const handleClick = (e: MouseEvent) => {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
+        setShowAttachMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const handleFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return
+    setShowAttachMenu(false)
     const reader = new FileReader()
     reader.onload = e => {
       const result = e.target?.result as string
@@ -77,9 +84,9 @@ export default function ChatInterface({ conversationId = null, onConversationUpd
   }
 
   const startVoice = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognition) { alert('Voice not supported in this browser'); return }
-    const recognition = new SpeechRecognition()
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) { alert('Voice not supported in this browser. Try Chrome.'); return }
+    const recognition = new SR()
     recognition.continuous = false
     recognition.interimResults = true
     recognition.lang = 'en-US'
@@ -93,15 +100,29 @@ export default function ChatInterface({ conversationId = null, onConversationUpd
     setListening(true)
   }
 
-  const stopVoice = () => {
-    recognitionRef.current?.stop()
-    setListening(false)
+  const stopVoice = () => { recognitionRef.current?.stop(); setListening(false) }
+
+  const createConversation = async (title: string) => {
+    const res = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    })
+    const data = await res.json()
+    return data.conversation?.id || null
   }
 
-  const send = async () => {
-    const text = input.trim()
+  const send = async (overrideText?: string) => {
+    const text = (overrideText || input).trim()
     if ((!text && !attachment) || loading) return
 
+    let convoId = activeConvoId
+    if (!convoId) {
+      convoId = await createConversation(text.slice(0, 60))
+      setActiveConvoId(convoId)
+    }
+
+    const msgId = Date.now().toString()
     const userMsg: Message = {
       role: 'user',
       content: attachment
@@ -111,25 +132,23 @@ export default function ChatInterface({ conversationId = null, onConversationUpd
           ]
         : text,
       imagePreview: attachment?.preview,
+      id: msgId,
     }
 
-    const apiMessages = [
-      ...messages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: userMsg.content },
-    ]
+    const apiMessages = [...messages.map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userMsg.content }]
 
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setAttachment(null)
     setLoading(true)
     setStreaming('')
-    setDisplayed('')
+    setChatStarted(true)
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, conversationId: activeConvoId.current }),
+        body: JSON.stringify({ messages: apiMessages, conversationId: convoId }),
       })
 
       if (!res.ok) throw new Error('API error')
@@ -150,164 +169,355 @@ export default function ChatInterface({ conversationId = null, onConversationUpd
         }
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: full }])
+      const assistantId = (Date.now() + 1).toString()
+      setMessages(prev => [...prev, { role: 'assistant', content: full, id: assistantId }])
       setStreaming('')
-      setDisplayed('')
       onConversationUpdate?.()
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.', id: Date.now().toString() }])
     } finally {
       setLoading(false)
     }
   }
 
-  const MarkdownContent = ({ content }: { content: string }) => (
-    <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-gray-900 prose-p:text-gray-800 prose-p:leading-relaxed prose-a:text-blue-600 prose-a:underline prose-a:font-medium prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl prose-li:text-gray-800 prose-strong:text-gray-900">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium hover:text-blue-800 transition-colors">
-              {children}
-            </a>
-          ),
-          code: ({ className, children, ...props }: any) => {
-            const isBlock = className?.includes('language-')
-            return isBlock ? (
-              <code className={className} {...props}>{children}</code>
-            ) : (
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800" {...props}>{children}</code>
-            )
-          },
-        }}
-      >
-        {content}
-      </ReactMarkdown>
+  const copyMessage = (content: string, id: string) => {
+    navigator.clipboard.writeText(typeof content === 'string' ? content : JSON.stringify(content))
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(''), 2000)
+  }
+
+  const startEdit = (msg: Message) => {
+    setEditingId(msg.id)
+    setEditText(typeof msg.content === 'string' ? msg.content : '')
+  }
+
+  const saveEdit = async () => {
+    if (!editText.trim()) return
+    const idx = messages.findIndex(m => m.id === editingId)
+    if (idx === -1) return
+    const newMessages = messages.slice(0, idx)
+    setMessages(newMessages)
+    setEditingId('')
+    await send(editText)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      // Shift+Enter sends
+      e.preventDefault()
+      send()
+    }
+    // Plain Enter = new line (default behavior, do nothing)
+  }
+
+  const autoResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    e.target.style.height = 'auto'
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
+  }
+
+  const MarkdownContent = ({ content, msgId }: { content: string; msgId: string }) => (
+    <div style={{ position: 'relative' }}>
+      <div className="prose prose-sm max-w-none" style={{
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 14,
+        lineHeight: 1.7,
+        color: '#1a1a1a',
+      }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ href, children }) => (
+              <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 500 }}>
+                {children}
+              </a>
+            ),
+            strong: ({ children }) => <strong style={{ fontWeight: 700, color: '#111' }}>{children}</strong>,
+            code: ({ className, children, ...props }: any) => {
+              const isBlock = className?.includes('language-')
+              return isBlock ? (
+                <code className={className} {...props}>{children}</code>
+              ) : (
+                <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4, fontSize: 13, fontFamily: 'monospace', color: '#374151' }} {...props}>{children}</code>
+              )
+            },
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+      {/* Copy + Edit icons */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <button
+          onClick={() => copyMessage(content, msgId)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 8px', borderRadius: 6, transition: 'all 0.15s' }}
+          title="Copy"
+        >
+          {copiedId === msgId ? <Check size={13} style={{ color: '#16a34a' }} /> : <Copy size={13} />}
+          {copiedId === msgId ? 'Copied' : 'Copy'}
+        </button>
+      </div>
     </div>
   )
 
+  const greetings = ['How can I help you today?', 'What are we working on?', 'Ready when you are.', 'What\'s on your mind?']
+  const greeting = greetings[0]
+
   return (
-    <div className="flex flex-col h-full bg-white" style={{ fontFamily: 'Inter, sans-serif' }}>
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100">
-        <button
-          onClick={() => setTypewriter(!typewriter)}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
-            typewriter ? 'bg-gray-900 text-white border-gray-900' : 'text-gray-400 border-gray-200 hover:border-gray-400'
-          }`}
-        >
-          <Type size={11} />
-          Typewriter
-        </button>
-        <button
-          onClick={() => { setMessages([]); setStreaming(''); setDisplayed('') }}
-          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors"
-        >
-          <Plus size={13} />
-          New chat
-        </button>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'white', fontFamily: 'Inter, sans-serif' }}>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
-        {messages.length === 0 && !streaming && (
-          <div className="flex flex-col items-center justify-center h-full gap-6 pb-10">
-            <p className="text-2xl font-light text-gray-300">How can I help?</p>
-            <div className="grid grid-cols-2 gap-2 max-w-md w-full">
+      <div style={{ flex: 1, overflowY: 'auto', padding: chatStarted ? '24px 0' : 0 }}>
+        {!chatStarted ? (
+          /* Empty state - centered */
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', paddingBottom: 80 }}>
+            <p style={{ fontSize: 28, fontWeight: 300, color: '#1a1a1a', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+              Back at it, {userName} 👋
+            </p>
+            <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 40 }}>{greeting}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, maxWidth: 440, width: '100%', padding: '0 24px' }}>
               {QUICK_PROMPTS.map(p => (
                 <button
                   key={p}
                   onClick={() => { setInput(p); textareaRef.current?.focus() }}
-                  className="text-left text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl px-3 py-2.5 transition-colors"
+                  style={{
+                    textAlign: 'left',
+                    fontSize: 13,
+                    color: '#4b5563',
+                    background: '#f9fafb',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 12,
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.15s',
+                  }}
                 >
                   {p}
                 </button>
               ))}
             </div>
           </div>
+        ) : (
+          <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
+            {messages.map((msg, i) => (
+              <div key={msg.id || i} style={{ marginBottom: 24, display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{ maxWidth: msg.role === 'user' ? '70%' : '100%', width: msg.role === 'assistant' ? '100%' : 'auto' }}>
+                  {msg.imagePreview && (
+                    <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                      <img src={msg.imagePreview} alt="uploaded" style={{ maxHeight: 200, borderRadius: 12, border: '1px solid #e5e7eb' }} />
+                    </div>
+                  )}
+                  {msg.role === 'user' ? (
+                    editingId === msg.id ? (
+                      <div>
+                        <textarea
+                          value={editText}
+                          onChange={e => setEditText(e.target.value)}
+                          style={{ width: '100%', border: '1.5px solid #1a1a1a', borderRadius: 12, padding: '10px 14px', fontSize: 14, fontFamily: 'Inter, sans-serif', resize: 'none', outline: 'none', minHeight: 80 }}
+                        />
+                        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                          <button onClick={saveEdit} style={{ background: '#1a1a1a', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: 12, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Send</button>
+                          <button onClick={() => setEditingId('')} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 14px', fontSize: 12, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ background: '#f3f4f6', borderRadius: '18px 18px 4px 18px', padding: '12px 16px', fontSize: 14, color: '#1a1a1a', lineHeight: 1.6 }}>
+                          {typeof msg.content === 'string' ? msg.content : msg.content?.find((c: any) => c.type === 'text')?.text}
+                        </div>
+                        <button
+                          onClick={() => startEdit(msg)}
+                          style={{ position: 'absolute', right: -28, top: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: 2 }}
+                          title="Edit"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <MarkdownContent content={msg.content} msgId={msg.id} />
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {streaming && (
+              <div style={{ marginBottom: 24 }}>
+                <MarkdownContent content={streaming} msgId="streaming" />
+              </div>
+            )}
+
+            {loading && !streaming && (
+              <div style={{ display: 'flex', gap: 6, padding: '8px 0' }}>
+                {[0, 1, 2].map(i => (
+                  <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: '#d1d5db', display: 'inline-block', animation: 'bounce 1.2s infinite', animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Input area */}
+      <div style={{ padding: chatStarted ? '12px 24px 20px' : '0 24px 40px', maxWidth: chatStarted ? 'none' : 600, margin: chatStarted ? 0 : '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        {attachment && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '8px 12px', background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <img src={attachment.preview} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+            <span style={{ fontSize: 12, color: '#6b7280' }}>Image attached</span>
+            <button onClick={() => setAttachment(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={14} /></button>
+          </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={msg.role === 'user' ? 'max-w-lg' : 'max-w-2xl w-full'}>
-              {msg.imagePreview && (
-                <div className="mb-2 flex justify-end">
-                  <img src={msg.imagePreview} alt="uploaded" className="max-h-48 rounded-xl border border-gray-200" />
-                </div>
-              )}
-              {msg.role === 'user' ? (
-                <div className="bg-gray-100 text-gray-900 rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed">
-                  {typeof msg.content === 'string' ? msg.content : msg.content?.find((c: any) => c.type === 'text')?.text}
-                </div>
-              ) : (
-                <MarkdownContent content={msg.content} />
-              )}
-            </div>
-          </div>
-        ))}
+        <div style={{
+          border: '1.5px solid #e5e7eb',
+          borderRadius: 16,
+          background: 'white',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          overflow: 'visible',
+        }}>
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={autoResize}
+            onKeyDown={onKeyDown}
+            placeholder={listening ? 'Listening...' : 'Ask Mikkal anything... (Shift+Enter to send, Enter for new line)'}
+            rows={1}
+            style={{
+              width: '100%',
+              border: 'none',
+              outline: 'none',
+              padding: '14px 16px 0',
+              fontSize: 14,
+              fontFamily: 'Inter, sans-serif',
+              color: '#1a1a1a',
+              resize: 'none',
+              background: 'transparent',
+              lineHeight: 1.6,
+              minHeight: 46,
+              boxSizing: 'border-box',
+            }}
+          />
 
-        {(streaming || (loading && !streaming)) && (
-          <div className="flex justify-start">
-            <div className="max-w-2xl w-full">
-              {streaming ? (
-                <MarkdownContent content={typewriter ? displayed : streaming} />
-              ) : (
-                <div className="flex gap-1 pt-2">
-                  {[0, 150, 300].map(d => (
-                    <span key={d} className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
+          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: 4 }}>
+            {/* Attach menu */}
+            <div style={{ position: 'relative' }} ref={attachMenuRef}>
+              <button
+                onClick={() => setShowAttachMenu(!showAttachMenu)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Add files"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+              {showAttachMenu && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '100%',
+                  left: 0,
+                  marginBottom: 8,
+                  background: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 12,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                  minWidth: 200,
+                  overflow: 'hidden',
+                  zIndex: 100,
+                }}>
+                  {[
+                    { icon: <ImageIcon size={15} />, label: 'Add photo or image', action: () => fileRef.current?.click() },
+                    { icon: <Camera size={15} />, label: 'Take a screenshot', action: () => { alert('Screenshot feature coming soon'); setShowAttachMenu(false) } },
+                    { icon: <FileText size={15} />, label: 'Upload document / PDF', action: () => fileRef.current?.click() },
+                    { icon: <Search size={15} />, label: 'Web search', action: () => { setInput(input + ' [search the web for this]'); setShowAttachMenu(false) } },
+                  ].map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={item.action}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '11px 16px',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        color: '#374151',
+                        fontFamily: 'Inter, sans-serif',
+                        textAlign: 'left',
+                        borderBottom: i < 3 ? '1px solid #f9fafb' : 'none',
+                        transition: 'background 0.1s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f9fafb'}
+                      onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'none'}
+                    >
+                      <span style={{ color: '#6b7280' }}>{item.icon}</span>
+                      {item.label}
+                    </button>
                   ))}
                 </div>
               )}
             </div>
-          </div>
-        )}
 
-        <div ref={bottomRef} />
-      </div>
+            <input ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.csv,.doc,.docx" className="hidden" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
 
-      {/* Input */}
-      <div className="border-t border-gray-100 px-4 py-4">
-        {attachment && (
-          <div className="max-w-3xl mx-auto mb-2 flex items-center gap-2">
-            <img src={attachment.preview} alt="attachment" className="h-12 w-12 object-cover rounded-lg border border-gray-200" />
-            <span className="text-xs text-gray-400">Image attached</span>
-            <button onClick={() => setAttachment(null)} className="ml-auto text-gray-400 hover:text-gray-600"><X size={14} /></button>
+            {/* Voice */}
+            <button
+              onClick={listening ? stopVoice : startVoice}
+              style={{
+                background: listening ? '#fee2e2' : 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: listening ? '#ef4444' : '#9ca3af',
+                padding: 6,
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Voice input"
+            >
+              {listening ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
+
+            <div style={{ flex: 1 }} />
+
+            {/* Send */}
+            <button
+              onClick={() => send()}
+              disabled={(!input.trim() && !attachment) || loading}
+              style={{
+                background: (!input.trim() && !attachment) || loading ? '#e5e7eb' : '#1a1a1a',
+                color: (!input.trim() && !attachment) || loading ? '#9ca3af' : 'white',
+                border: 'none',
+                borderRadius: 10,
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: (!input.trim() && !attachment) || loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <Send size={15} />
+            </button>
           </div>
-        )}
-        <div className="max-w-3xl mx-auto flex items-end gap-2">
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-          <button onClick={() => fileRef.current?.click()} className="text-gray-400 hover:text-gray-700 transition-colors pb-3 flex-shrink-0" title="Attach image">
-            <Paperclip size={18} />
-          </button>
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-            placeholder={listening ? 'Listening...' : 'Ask Mikkal anything...'}
-            rows={1}
-            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none outline-none focus:border-gray-400 leading-relaxed max-h-40 transition-colors"
-            style={{ minHeight: '46px' }}
-          />
-          <button
-            onClick={listening ? stopVoice : startVoice}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${
-              listening ? 'bg-red-500 text-white' : 'text-gray-400 hover:text-gray-700 border border-gray-200 hover:border-gray-400'
-            }`}
-            title="Voice input"
-          >
-            {listening ? <MicOff size={16} /> : <Mic size={16} />}
-          </button>
-          <button
-            onClick={send}
-            disabled={(!input.trim() && !attachment) || loading}
-            className="bg-gray-900 hover:bg-gray-800 disabled:opacity-30 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors flex-shrink-0"
-          >
-            <Send size={15} />
-          </button>
         </div>
-        <p className="text-center text-xs text-gray-300 mt-2">Enter to send · Shift+Enter for new line</p>
+        <p style={{ textAlign: 'center', fontSize: 11, color: '#d1d5db', marginTop: 8, fontFamily: 'Inter, sans-serif' }}>
+          Shift+Enter to send · Enter for new line
+        </p>
       </div>
+
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }
