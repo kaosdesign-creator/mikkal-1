@@ -1,18 +1,25 @@
 import type { Metadata } from 'next'
-import { Syne, DM_Sans } from 'next/font/google'
+import { Orbitron, Bungee_Hairline, Inter } from 'next/font/google'
 import Providers from './providers'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
-const syne = Syne({
+const orbitron = Orbitron({
   subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-orbitron',
+  weight: ['400', '900'],
 })
 
-const dmSans = DM_Sans({
+const bungeeHairline = Bungee_Hairline({
   subsets: ['latin'],
-  variable: '--font-dm',
+  variable: '--font-bungee',
+  weight: ['400'],
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  weight: ['400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -23,8 +30,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable}`}>
-      <body className="bg-white text-gray-900 font-body antialiased">
+    <html lang="en" className={`${orbitron.variable} ${bungeeHairline.variable} ${inter.variable}`}>
+      <body className="bg-white text-gray-900 antialiased" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
         <Providers>
           {children}
           <Toaster
@@ -35,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 color: '#111827',
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                fontFamily: 'var(--font-dm)',
+                fontFamily: 'var(--font-inter)',
               },
             }}
           />
