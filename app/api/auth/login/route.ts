@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       .eq('email', email.toLowerCase())
       .single()
 
-    if (error || !user) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    if (error || !user) return NextResponse.json({ error: error?.message || 'User not found' }, { status: 401 })
 
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
