@@ -37,7 +37,7 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
   const fileRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
-  const activeConvoId = useRef<string | null>(conversationId)
+  const activeConvoId = useRef<string | null>(conversationId || null)
 
   useEffect(() => { activeConvoId.current = conversationId }, [conversationId])
 
