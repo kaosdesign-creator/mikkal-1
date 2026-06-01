@@ -11,7 +11,7 @@ interface Message {
 }
 
 interface Props {
-  conversationId: string | null
+  conversationId?: string | null
   onConversationUpdate?: () => void
 }
 

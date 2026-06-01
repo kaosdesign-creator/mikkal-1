@@ -238,7 +238,7 @@ export default function DashboardPage() {
 
         {/* Module content */}
         <main className="flex-1 overflow-hidden">
-          {module === 'chat' && <ChatInterface conversationId={activeConvo} onConversationUpdate={loadConversations} />}
+          {module === 'chat'     && <ChatInterface conversationId={activeConvo} onConversationUpdate={loadConversations} />}
           {module === 'research' && <ResearchInterface />}
           {module === 'images'   && <ImagesInterface />}
           {module === 'code'     && <CodeInterface />}
