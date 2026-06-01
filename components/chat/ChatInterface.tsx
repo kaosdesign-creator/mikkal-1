@@ -39,7 +39,7 @@ export default function ChatInterface({ conversationId, onConversationUpdate }: 
   const recognitionRef = useRef<any>(null)
   const activeConvoId = useRef<string | null>(conversationId || null)
 
-  useEffect(() => { activeConvoId.current = conversationId }, [conversationId])
+  useEffect(() => { activeConvoId.current = conversationId || null }, [conversationId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
