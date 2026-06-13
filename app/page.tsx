@@ -45,7 +45,7 @@ export default function LandingPage() {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 480 }}>
         
         {/* Wordmark */}
-        <div style={{ fontFamily: 'var(--font-orbitron), Orbitron, sans-serif', fontSize: 72, color: '#1a1a1a', lineHeight: 1, display: 'flex', alignItems: 'center', paddingLeft: 14 }}>
+        <div style={{ fontFamily: 'var(--font-orbitron), Orbitron, sans-serif', fontSize: 72, color: '#1a1a1a', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
           <span style={{ fontWeight: 400 }}>M</span>
           <span style={{ fontWeight: 400 }}>I</span>
           <span style={{ fontWeight: 900, display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>
@@ -61,7 +61,7 @@ export default function LandingPage() {
         <div style={{ display: 'flex', gap: 20, marginTop: 44 }}>
           {(['register', 'signin'] as Mode[]).map((m) => (
             <button key={m} onClick={() => openMode(mode === m ? 'none' : m)}
-              style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 2, border: '1.5px solid #1a1a1a', borderRadius: 999, padding: '13px 30px', background: mode === m ? '#1a1a1a' : 'transparent', color: mode === m ? 'white' : '#1a1a1a', cursor: 'pointer', transition: 'all 0.2s' }}>
+              style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 2, border: '1.5px solid #1a1a1a', borderRadius: 999, padding: '13px 30px', width: 140, textAlign: 'center', background: mode === m ? '#1a1a1a' : 'transparent', color: mode === m ? 'white' : '#1a1a1a', cursor: 'pointer', transition: 'all 0.2s' }}>
               {m === 'register' ? 'REGISTER' : 'SIGN IN'}
             </button>
           ))}
