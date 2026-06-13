@@ -1,125 +1,46 @@
 const fs = require('fs')
-const content = [
-  "'use client'",
-  "import { useState, useRef, useEffect } from 'react'",
-  "import { useSession } from 'next-auth/react'",
-  "import { Send, Plus } from 'lucide-react'",
-  "import ReactMarkdown from 'react-markdown'",
-  "import remarkGfm from 'remark-gfm'",
-  "import { v4 as uuidv4 } from 'uuid'",
-  "",
-  "interface Message { id: string; role: 'user' | 'assistant'; content: string }",
-  "",
-  "export default function ChatInterface() {",
-  "  const { data: session } = useSession()",
-  "  const [messages, setMessages] = useState<Message[]>([])",
-  "  const [input, setInput] = useState('')",
-  "  const [loading, setLoading] = useState(false)",
-  "  const [streaming, setStreaming] = useState('')",
-  "  const bottomRef = useRef<HTMLDivElement>(null)",
-  "  const firstName = session?.user?.name?.split(' ')[0] || 'there'",
-  "",
-  "  useEffect(() => {",
-  "    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })",
-  "  }, [messages, streaming])",
-  "",
-  "  const send = async (text?: string) => {",
-  "    const content = (text || input).trim()",
-  "    if (!content || loading) return",
-  "    const userMsg: Message = { id: uuidv4(), role: 'user', content }",
-  "    const all = [...messages, userMsg]",
-  "    setMessages(all)",
-  "    setInput('')",
-  "    setLoading(true)",
-  "    setStreaming('')",
-  "    try {",
-  "      const res = await fetch('/api/chat', {",
-  "        method: 'POST',",
-  "        headers: { 'Content-Type': 'application/json' },",
-  "        body: JSON.stringify({ messages: all.map(m => ({ role: m.role, content: m.content })) }),",
-  "      })",
-  "      if (!res.ok) throw new Error('Failed')",
-  "      const reader = res.body!.getReader()",
-  "      const decoder = new TextDecoder()",
-  "      let full = ''",
-  "      while (true) {",
-  "        const { done, value } = await reader.read()",
-  "        if (done) break",
-  "        const lines = decoder.decode(value).split('\\n')",
-  "        for (const line of lines) {",
-  "          if (line.startsWith('data: ')) {",
-  "            const d = line.slice(6)",
-  "            if (d === '[DONE]') {",
-  "              setMessages(prev => [...prev, { id: uuidv4(), role: 'assistant', content: full }])",
-  "              setStreaming('')",
-  "            } else {",
-  "              try { full += JSON.parse(d).text; setStreaming(full) } catch {}",
-  "            }",
-  "          }",
-  "        }",
-  "      }",
-  "    } catch {",
-  "      setMessages(prev => [...prev, { id: uuidv4(), role: 'assistant', content: 'Something went wrong. Try again.' }])",
-  "    } finally {",
-  "      setLoading(false)",
-  "    }",
-  "  }",
-  "",
-  "  return (",
-  "    <div className='flex flex-col h-full bg-white'>",
-  "      <div className='flex-1 overflow-y-auto px-6 py-6 space-y-6'>",
-  "        {messages.length === 0 && !streaming && (",
-  "          <div className='flex flex-col items-center justify-center h-full text-center'>",
-  "            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Hello, {firstName}</h2>",
-  "            <p className='text-gray-400 text-sm'>Ask me anything. I am your one-stop shop.</p>",
-  "          </div>",
-  "        )}",
-  "        {messages.map(msg => (",
-  "          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>",
-  "            <div className={`max-w-3xl ${msg.role === 'user' ? 'bg-cyan-500 text-white rounded-2xl rounded-tr-sm px-4 py-3' : 'text-gray-800'}`}>",
-  "              {msg.role === 'assistant' ? (",
-  "                <div className='prose prose-sm max-w-none prose-a:text-cyan-600 prose-a:underline'>",
-  "                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>",
-  "                </div>",
-  "              ) : (",
-  "                <p className='text-sm leading-relaxed'>{msg.content}</p>",
-  "              )}",
-  "            </div>",
-  "          </div>",
-  "        ))}",
-  "        {streaming && (",
-  "          <div className='flex justify-start'>",
-  "            <div className='max-w-3xl text-gray-800'>",
-  "              <div className='prose prose-sm max-w-none prose-a:text-cyan-600 prose-a:underline'>",
-  "                <ReactMarkdown remarkPlugins={[remarkGfm]}>{streaming}</ReactMarkdown>",
-  "              </div>",
-  "            </div>",
-  "          </div>",
-  "        )}",
-  "        <div ref={bottomRef} />",
-  "      </div>",
-  "      <div className='border-t border-gray-100 px-6 py-4'>",
-  "        <div className='flex items-end gap-3 max-w-4xl mx-auto'>",
-  "          <button onClick={() => { setMessages([]); setStreaming('') }} className='text-gray-400 hover:text-gray-600 pb-3'>",
-  "            <Plus size={20} />",
-  "          </button>",
-  "          <textarea value={input} onChange={e => setInput(e.target.value)}",
-  "            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}",
-  "            placeholder='Ask Mikkal anything...'",
-  "            rows={1}",
-  "            className='flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none outline-none focus:border-cyan-300 leading-relaxed max-h-40'",
-  "          />",
-  "          <button onClick={() => send()} disabled={!input.trim() || loading}",
-  "            className='bg-cyan-500 hover:bg-cyan-600 disabled:opacity-30 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors flex-shrink-0'>",
-  "            <Send size={16} />",
-  "          </button>",
-  "        </div>",
-  "        <p className='text-center text-xs text-gray-300 mt-2'>Enter to send · Shift+Enter for new line</p>",
-  "      </div>",
-  "    </div>",
-  "  )",
-  "}",
-].join('\n')
+const path = require('path')
 
-fs.writeFileSync('components/chat/ChatInterface.tsx', content)
-console.log('Done')
+const filePath = path.join('C:\\Users\\bthey\\downloads\\mikkal-v1\\mikkal\\app\\api\\images\\route.ts')
+
+const content = `import { NextRequest, NextResponse } from 'next/server'
+
+export const runtime = 'nodejs'
+
+export async function POST(req: NextRequest) {
+  try {
+    const { prompt } = await req.json()
+    if (!prompt) return NextResponse.json({ error: 'No prompt' }, { status: 400 })
+
+    const res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: \`Bearer \${process.env.OPENAI_API_KEY}\`,
+      },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt,
+        n: 1,
+        size: '1024x1024',
+        quality: 'standard',
+      }),
+    })
+
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error?.message || 'DALL-E error')
+    }
+
+    const data = await res.json()
+    const imageUrl = data.data[0].url
+    return NextResponse.json({ imageUrl })
+  } catch (error: any) {
+    console.error('IMAGE ERROR:', error?.message)
+    return NextResponse.json({ error: error.message || 'Image generation failed' }, { status: 500 })
+  }
+}
+`
+
+fs.writeFileSync(filePath, content, 'utf8')
+console.log('Done! images/route.ts has been fixed.')
