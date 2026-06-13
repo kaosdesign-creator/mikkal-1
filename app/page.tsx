@@ -45,7 +45,7 @@ export default function LandingPage() {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 480 }}>
         
         {/* Wordmark */}
-        <div style={{ fontFamily: 'var(--font-orbitron), Orbitron, sans-serif', fontSize: 72, color: '#1a1a1a', lineHeight: 1, display: 'flex', alignItems: 'center', letterSpacing: 0 }}>
+        <div style={{ fontFamily: 'var(--font-orbitron), Orbitron, sans-serif', fontSize: 72, color: '#1a1a1a', lineHeight: 1, display: 'flex', alignItems: 'center', paddingLeft: 14 }}>
           <span style={{ fontWeight: 400 }}>M</span>
           <span style={{ fontWeight: 400 }}>I</span>
           <span style={{ fontWeight: 900, display: 'inline-block', transform: 'scaleX(-1)' }}>K</span>
@@ -55,7 +55,7 @@ export default function LandingPage() {
         </div>
 
         {/* Tagline */}
-        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, letterSpacing: 3, fontWeight: 500, color: '#666', marginTop: 12 }}>INVITE ONLY</p>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, letterSpacing: 3, fontWeight: 500, color: '#666', marginTop: 12 }}>WISDOM &nbsp;·&nbsp; INSIGHT &nbsp;·&nbsp; INTELLIGENCE</p>
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 20, marginTop: 44 }}>
