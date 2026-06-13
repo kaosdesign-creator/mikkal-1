@@ -60,13 +60,14 @@ export default function LandingPage() {
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 20, marginTop: 44 }}>
           {(['register', 'signin'] as Mode[]).map((m) => (
-            <button key={m} onClick={() => openMode(mode === m ? 'none' : m)} style={{ fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 11, letterSpacing: 3, border: '1.5px solid #1a1a1a', borderRadius: 999, padding: '13px 30px', background: mode === m ? '#1a1a1a' : 'transparent', color: mode === m ? 'white' : '#1a1a1a', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <button key={m} onClick={() => openMode(mode === m ? 'none' : m)}
+              style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 2, border: '1.5px solid #1a1a1a', borderRadius: 999, padding: '13px 30px', background: mode === m ? '#1a1a1a' : 'transparent', color: mode === m ? 'white' : '#1a1a1a', cursor: 'pointer', transition: 'all 0.2s' }}>
               {m === 'register' ? 'REGISTER' : 'SIGN IN'}
             </button>
           ))}
         </div>
 
-        <p style={{ fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 10, letterSpacing: 3, color: '#666', marginTop: 12 }}>INVITE ONLY</p>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, letterSpacing: 3, fontWeight: 500, color: '#666', marginTop: 12 }}>INVITE ONLY</p>
 
         {/* Inline form */}
         {mode !== 'none' && (
