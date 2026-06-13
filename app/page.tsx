@@ -39,10 +39,8 @@ export default function LandingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#eeedea', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', padding: '40px 20px' }}>
-      
-      {/* Raven watermark */}
-      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 600, opacity: 0.15, pointerEvents: 'none', zIndex: 0 }}>
+    <div style={{ minHeight: '100vh', background: '#eeedea', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', position: 'relative', padding: '60px 20px 100px' }}>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 600, opacity: 0.06, pointerEvents: 'none', zIndex: 0 }}>
         <img src="/raven.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'grayscale(100%)' }} />
       </div>
 
@@ -118,7 +116,7 @@ export default function LandingPage() {
         )}
       </div>
 
-      <div style={{ position: 'fixed', bottom: 24, left: 0, right: 0, textAlign: 'center', fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 10, letterSpacing: 3, color: '#777', zIndex: 1 }}>
+      <div style={{ marginTop: 40, textAlign: 'center', fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 10, letterSpacing: 3, color: '#777', zIndex: 1, position: 'relative' }}>
         © MIKKAL &nbsp;·&nbsp; PRIVATE ACCESS
       </div>
     </div>
