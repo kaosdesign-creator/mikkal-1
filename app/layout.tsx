@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Orbitron, Bungee_Hairline, Inter } from 'next/font/google'
+import { Orbitron, Bungee_Hairline, Plus_Jakarta_Sans } from 'next/font/google'
 import Providers from './providers'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
@@ -16,10 +16,10 @@ const bungeeHairline = Bungee_Hairline({
   weight: ['400'],
 })
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${orbitron.variable} ${bungeeHairline.variable} ${inter.variable}`}>
+    <html lang="en" className={`${orbitron.variable} ${bungeeHairline.variable} ${plusJakarta.variable}`}>
       <body className="bg-white text-gray-900 antialiased" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
         <Providers>
           {children}

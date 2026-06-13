@@ -11,7 +11,7 @@ interface SearchResult {
   score: number
 }
 
-export default function ResearchInterface() {
+export default function ResearchInterface({ userName = 'there', isMobile = false }: { userName?: string; isMobile?: boolean }) {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [answer, setAnswer] = useState('')
