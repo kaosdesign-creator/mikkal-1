@@ -40,9 +40,7 @@ export default function LandingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#eeedea', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', position: 'relative', padding: '60px 20px 100px' }}>
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 600, opacity: 0.06, pointerEvents: 'none', zIndex: 0 }}>
-        <img src="/raven.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'grayscale(100%)' }} />
-      </div>
+      
 
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 480 }}>
         
@@ -57,9 +55,7 @@ export default function LandingPage() {
         </div>
 
         {/* Tagline */}
-        <p style={{ fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 11, letterSpacing: 4, color: '#555', marginTop: 16 }}>
-          WISDOM &nbsp;·&nbsp; INSIGHT &nbsp;·&nbsp; INTELLIGENCE
-        </p>
+        <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, letterSpacing: 3, fontWeight: 500, color: '#666', marginTop: 12 }}>INVITE ONLY</p>
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 20, marginTop: 44 }}>
@@ -75,7 +71,7 @@ export default function LandingPage() {
         {/* Inline form */}
         {mode !== 'none' && (
           <div style={{ width: '100%', background: 'white', borderRadius: 20, border: '1px solid #ddd', padding: 28, marginTop: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-            <p style={{ fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 11, letterSpacing: 3, color: '#444', textAlign: 'center', marginBottom: 20 }}>
+           <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 12, letterSpacing: 3, fontWeight: 600, color: '#444', textAlign: 'center', marginBottom: 20 }}>
               {mode === 'signin' ? 'SIGN IN TO CONTINUE' : 'CREATE YOUR ACCOUNT'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -116,7 +112,7 @@ export default function LandingPage() {
         )}
       </div>
 
-      <div style={{ marginTop: 40, textAlign: 'center', fontFamily: 'var(--font-bungee), "Bungee Hairline", sans-serif', fontSize: 10, letterSpacing: 3, color: '#777', zIndex: 1, position: 'relative' }}>
+      <div style={{ marginTop: 40, textAlign: 'center', fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, letterSpacing: 3, fontWeight: 500, color: '#777', zIndex: 1, position: 'relative' }}>
         © MIKKAL &nbsp;·&nbsp; PRIVATE ACCESS
       </div>
     </div>
