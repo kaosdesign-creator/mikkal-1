@@ -11,7 +11,7 @@ const WHAT_NEXT = [
   { icon: ZoomIn,     color: '#E6F1FB', iconColor: '#185FA5', label: 'Different size',    desc: 'Regenerate as portrait or landscape', action: 'resize' },
 ]
 
-export default function ImagesInterface({ userName }: { userName?: string }) {
+export default function ImagesInterface({ userName, isMobile }: { userName?: string; isMobile?: boolean }) {
   const [prompt, setPrompt]           = useState('')
   const [size, setSize]               = useState<Size>('square')
   const [loading, setLoading]         = useState(false)
