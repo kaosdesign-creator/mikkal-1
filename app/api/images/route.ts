@@ -15,20 +15,34 @@ export async function POST(req: NextRequest) {
     }
     const { width, height } = dimensions[size] || dimensions.square
 
-    const input: Record<string, unknown> = {
-      prompt,
-      width,
-      height,
-      output_format: 'jpg',
-      output_quality: 90,
-    }
+    let modelUrl: string
+    let input: Record<string, unknown>
 
     if (imageBase64) {
-      input.image = imageBase64
-      input.prompt_strength = 0.8
+      modelUrl = 'https://api.replicate.com/v1/models/black-forest-labs/flux-dev/predictions'
+      input = {
+        prompt,
+        image: imageBase64,
+        width,
+        height,
+        num_inference_steps: 28,
+        guidance: 3.5,
+        strength: 0.8,
+        output_format: 'jpg',
+        output_quality: 90,
+      }
+    } else {
+      modelUrl = 'https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions'
+      input = {
+        prompt,
+        width,
+        height,
+        output_format: 'jpg',
+        output_quality: 90,
+      }
     }
 
-    const res = await fetch('https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions', {
+    const res = await fetch(modelUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
