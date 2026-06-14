@@ -12,28 +12,31 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json()
     if (!prompt) return NextResponse.json({ error: 'No prompt' }, { status: 400 })
 
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
+    const res = await fetch('https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: \`Bearer \${process.env.OPENAI_API_KEY}\`,
+        'Authorization': \`Bearer \${process.env.REPLICATE_API_KEY}\`,
+        'Prefer': 'wait',
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'standard',
+        input: {
+          prompt,
+          width: 1024,
+          height: 1024,
+          output_format: 'jpg',
+          output_quality: 90,
+        }
       }),
     })
 
     if (!res.ok) {
       const err = await res.json()
-      throw new Error(err.error?.message || 'DALL-E error')
+      throw new Error(err.detail || 'Replicate error')
     }
 
     const data = await res.json()
-    const imageUrl = data.data[0].url
+    const imageUrl = data.output
     return NextResponse.json({ imageUrl })
   } catch (error: any) {
     console.error('IMAGE ERROR:', error?.message)
@@ -43,4 +46,4 @@ export async function POST(req: NextRequest) {
 `
 
 fs.writeFileSync(filePath, content, 'utf8')
-console.log('Done! images/route.ts has been fixed.')
+console.log('Done! images/route.ts switched to Flux via Replicate.')
