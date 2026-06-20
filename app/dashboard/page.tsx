@@ -8,11 +8,12 @@ import {
   Calendar, Share2, Menu, X, Zap, LogOut, ChevronDown
 } from 'lucide-react'
 import ChatInterface from '@/components/chat/ChatInterface'
+import ImageGenerator from '@/components/images/ImageGenerator'
 
 const NAV = [
   { id: 'chat',     label: 'Chat',        icon: MessageSquare, live: true  },
   { id: 'research', label: 'Research',    icon: Search,        live: false },
-  { id: 'images',   label: 'Images',      icon: Image,         live: false },
+  { id: 'images',   label: 'Images',      icon: Image,         live: true  },
   { id: 'code',     label: 'Code',        icon: Code,          live: false },
   { id: 'docs',     label: 'Documents',   icon: FileText,      live: false },
   { id: 'schedule', label: 'Schedule',    icon: Calendar,      live: false },
@@ -138,8 +139,9 @@ export default function Dashboard() {
 
         {/* Content */}
         <main className="flex-1 overflow-hidden">
-          {active === 'chat' && <ChatInterface />}
-          {active !== 'chat' && (
+          {active === 'chat'   && <ChatInterface />}
+          {active === 'images' && <ImageGenerator />}
+          {active !== 'chat' && active !== 'images' && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
