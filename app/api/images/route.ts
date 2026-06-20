@@ -8,14 +8,17 @@ export const runtime = 'nodejs'
 export async function POST(req: NextRequest) {
   try {
     const { prompt, size = 'square', referenceImage, strength = 0.85 } = await req.json()
-    if (!prompt) return NextResponse.json({ error: 'No prompt' }, { status: 400 })
+
+    if (!prompt?.trim()) {
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
+    }
 
     const dimensions: Record<string, { width: number; height: number }> = {
       square:    { width: 1024, height: 1024 },
       portrait:  { width: 768,  height: 1024 },
       landscape: { width: 1024, height: 768  },
     }
-    const { width, height } = dimensions[size] || dimensions.square
+    const { width, height } = dimensions[size] ?? dimensions.square
 
     let result: unknown
 
@@ -23,8 +26,8 @@ export async function POST(req: NextRequest) {
       result = await fal.subscribe('fal-ai/flux/dev/image-to-image', {
         input: {
           image_url:             referenceImage,
-          prompt,
-          strength,
+          prompt:                prompt.trim(),
+          strength:              strength,
           num_inference_steps:   28,
           guidance_scale:        3.5,
           num_images:            1,
@@ -35,7 +38,7 @@ export async function POST(req: NextRequest) {
     } else {
       result = await fal.subscribe('fal-ai/flux-pro/v1.1', {
         input: {
-          prompt,
+          prompt:           prompt.trim(),
           image_size:       { width, height },
           num_images:       1,
           safety_tolerance: '2',
@@ -44,12 +47,12 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const imageUrl = (result as { images: { url: string }[] }).images?.[0]?.url
-    if (!imageUrl) throw new Error('No image returned')
+    const url = (result as { images: { url: string }[] }).images?.[0]?.url
+    if (!url) throw new Error('No image returned from FLUX')
 
-    return NextResponse.json({ url: imageUrl })
+    return NextResponse.json({ url })
   } catch (error: unknown) {
-    console.error('Image generation error:', error)
+    console.error('[images] error:', error)
     const message = error instanceof Error ? error.message : 'Generation failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }
