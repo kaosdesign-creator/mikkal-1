@@ -63,7 +63,7 @@ export default function ImagesInterface({ userName, isMobile }: { userName?: str
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      setImages(prev => [...prev, { id: Date.now(), url: data.imageUrl, prompt: p, size: s }])
+      setImages(prev => [...prev, { id: Date.now(), url: data.url, prompt: p, size: s }])
       scrollToBottom()
     } catch (e: any) {
       setError(e.message || 'Generation failed')
