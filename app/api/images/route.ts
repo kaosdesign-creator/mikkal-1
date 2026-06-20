@@ -10,22 +10,40 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { prompt, size = '1:1', style = 'photographic' } = await req.json()
+    const { prompt, size = '1:1', style = 'photographic', referenceImage, strength = 0.85 } = await req.json()
     if (!prompt?.trim()) return NextResponse.json({ error: 'Prompt required' }, { status: 400 })
 
     const [width, height] = sizeToPixels(size)
+    let result: unknown
 
-    const result = await fal.subscribe('fal-ai/flux-pro/v1.1', {
-      input: {
-        prompt: buildPrompt(prompt, style),
-        image_size: { width, height },
-        num_images: 1,
-        safety_tolerance: '2',
-        output_format: 'jpeg',
-      },
-    }) as unknown as { images: { url: string }[] }
+    if (referenceImage) {
+      // Image-to-image with FLUX Dev
+      result = await fal.subscribe('fal-ai/flux/dev/image-to-image', {
+        input: {
+          image_url:             referenceImage,
+          prompt:                buildPrompt(prompt, style),
+          strength,
+          num_inference_steps:   28,
+          guidance_scale:        3.5,
+          num_images:            1,
+          output_format:         'jpeg',
+          enable_safety_checker: false,
+        },
+      })
+    } else {
+      // Text-to-image with FLUX Pro
+      result = await fal.subscribe('fal-ai/flux-pro/v1.1', {
+        input: {
+          prompt:           buildPrompt(prompt, style),
+          image_size:       { width, height },
+          num_images:       1,
+          safety_tolerance: '2',
+          output_format:    'jpeg',
+        },
+      })
+    }
 
-    const imageUrl = result.images?.[0]?.url
+    const imageUrl = (result as { images: { url: string }[] }).images?.[0]?.url
     if (!imageUrl) throw new Error('No image returned')
 
     return NextResponse.json({ url: imageUrl, prompt, size, style })
